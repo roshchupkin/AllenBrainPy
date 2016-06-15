@@ -10,7 +10,7 @@ from sklearn.metrics.pairwise import euclidean_distances
 from scipy import ndimage,stats
 import sqlite3 as sql
 #import seaborn as sns
-from  matplotlib.pylab import plot, show, savefig, xlim, figure,hold, ylim, legend, boxplot, setp, axes,text
+from  matplotlib.pylab import plot, show, savefig, xlim, figure,hold, ylim, legend, boxplot, setp, axes,text, title
 
 class Timer(object):
     def __init__(self, verbose=False):
@@ -119,7 +119,7 @@ class Donor(object):
             return {'whole':gene_expression, 'whole_bin':gene_expression_bin}
 
         if self.data_type=='sql':
-            print 'not implemented' #TODO
+            raise ValueError('sql not implemented') #TODO
 
 def form_clusters(data,threshold,type='p-value',cluster_size_threshold=1):
 
@@ -188,7 +188,7 @@ def sample_map_allen_space(image_path, annot_csv_path, save_path, type='well_id'
     nipy.save_image(I, os.path.join(save_path, image_name))
 
 
-def plot_cluster_expression(out,data1,data2,donor,gene, draw=False):
+def plot_cluster_expression(out,data1,data2,donor,gene, image):
 
     # function for setting the colors of the box plots pairs
     def setBoxColors(bp):
@@ -212,46 +212,41 @@ def plot_cluster_expression(out,data1,data2,donor,gene, draw=False):
 
     N_probes=data1.shape[0]
 
-    expr=np.array([])
-    pr=[]
-    l=[]
-
-
     fig = figure()
     ax = axes()
     hold(True)
 
     s=1
     f=2
-    p_values=[]
+    p_value=[]
     t_stat=[]
+    ticks=[]
     for i in range(N_probes):
         t,p=stats.ttest_ind(data1[i,:], data2[i,:])
-        p_values.append(p)
+        bp = boxplot([data1[i,:],data2[i,:]], positions = [s, f], widths = 0.6)
+        setBoxColors(bp)
+        ticks.append( (s+f)/2. )
+        s+=3
+        f+=3
+        p_value.append(p)
         t_stat.append(t)
-        print 't-statistic {0} and p-value {1}'.format(t,p)
 
-        if draw:
-            bp = boxplot([data1[i,:],data2[i,:]], positions = [s, f], widths = 0.6)
-            setBoxColors(bp)
-            s+=3
-            f+=3
-            text(s,1,np.round(p,3) )
-        #text(2+3*N_probes+1,20-i, 't-statistic {0} and p-value {1} for Probes # {2}'.format(t,p,i))
+    hB, = plot([1,1],'b-')
+    hR, = plot([1,1],'r-')
 
-    #ax.set_xticklabels(['probe #{}'.format(j) for j in range(1,N_probes+1)])
-    #ax.set_xticks([1.5, 4.5, 7.5])
-    if draw:
-        hB, = plot([1,1],'b-')
-        hR, = plot([1,1],'r-')
-        xlim(0,f+2)
-        ylim(2,20)
-        legend((hB, hR),('Inside', 'Outside'))
-        hB.set_visible(False)
-        hR.set_visible(False)
-        try:
-            savefig(os.path.join(out,donor+"_"+gene+".png") )
-        except:
-            savefig(os.path.join(out,donor+"_"+gene+".svg") )
+    xlim(0,f+2)
+    ylim(2,20)
+    legend((hB, hR),('Inside', 'Outside'))
 
-    return p_values,t_stat
+    for i in range(N_probes):
+        text(f+3,10-i,'Probe #{}: p-value={}'.format(i+1,np.round(p_value[i],3) ) )
+    ax.set_xticklabels(['probe #{}'.format(j) for j in range(1,N_probes+1)])
+    ax.set_xticks(ticks)
+    title('Donor {}, Allen Brain expression of gene {} inside/outside clusters formed in {} image'.format(donor, gene,image))
+
+    hB.set_visible(False)
+    hR.set_visible(False)
+    try:
+        savefig(os.path.join(out,donor+"_"+gene+".png") )
+    except:
+        savefig(os.path.join(out,donor+"_"+gene+".svg") )

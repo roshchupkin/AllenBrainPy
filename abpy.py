@@ -10,7 +10,11 @@ parser = argparse.ArgumentParser(description='Python script to analyze VBM resul
 parser.add_argument("-o",required=True, type=str, help="path to save result folder")
 parser.add_argument("-model",default='cluster_expression', choices=['cluster_expression','correlation'],type=str, help="Analysis models") #TODO extend
 parser.add_argument("-i",required=True, type=str, help="path input nifti image of VBM result map")
-parser.add_argument("-d",default='all',choices=['all','caucasian'], type=str, help="choose all donors or only caucasian (choices=['all','caucasian'])")
+
+group1 = parser.add_mutually_exclusive_group(required=True)
+group1.add_argument("-d",choices=['all','caucasian'], type=str, help="choose all donors or only caucasian (choices=['all','caucasian'])")
+group1.add_argument("-donor",nargs='+', help="choose donor(s)")
+
 parser.add_argument('-threshold',required=True,type=np.float64, help='value threshold to form clusters from VBM result map')
 parser.add_argument('-cl_size_threshold',type=int,default=1, help='cluster size threshold to form clusters from VBM result map')
 parser.add_argument('-dist_threshold',type=int,default=10, help='threshold for distance in voxels to link sample to clusters')
@@ -25,20 +29,24 @@ parser.add_argument('-result_name', required=True, help='name for saving results
 parser.add_argument('-probe_mode', type=str,default='all',choices=['all','best', 'mean'], help='gene name for expression analysis')
 parser.add_argument('-plot', action='store_true',default=False, help='plot boxplot of gene expression')
 
-group = parser.add_mutually_exclusive_group(required=True)
-group.add_argument('-gene_names',nargs='+', help='gene name for expression analysis')
-group.add_argument('-rsid',nargs='+', help='gene name for expression analysis') #TODO
+group2 = parser.add_mutually_exclusive_group(required=True)
+group2.add_argument('-gene_names',nargs='+', help='gene name for expression analysis')
+#group2.add_argument('-rsid',nargs='+', help='gene name for expression analysis') #TODO
 
 args = parser.parse_args()
 print args
 
 I_map=nipy.load_image(args.i)
 
-if args.d=='all':
-    donors=DONOR
-elif args.d=='caucasian':
-    donors=DONOR_CAUCASIAN
-
+if args.d is not None:
+    if args.d=='all':
+        donors=DONOR
+    elif args.d=='caucasian':
+        donors=DONOR_CAUCASIAN
+elif args.donor is not None:
+    donors=args.donor
+else:
+    raise ValueError('one of the arguments -d -donor is required')
 
 if args.model=='cluster_expression':
 
@@ -70,14 +78,17 @@ if args.model=='cluster_expression':
         gene_exression_info[d]={}
         #gene_exression_info[d]['cluster_statistic']=cluster_statistic #TODO
         for g in args.gene_names:
-
             gene_exression_info[d][g]=donor.get_gene_expr_info(g,samples_id=linked_samples,probe_mode=args.probe_mode)
-            p,t=plot_cluster_expression(args.o,gene_exression_info[d][g]['inside'],gene_exression_info[d][g]['outside'],d,g,draw=args.plot)
-            df_dic['p-value']=df_dic['p-value'] + p
-            df_dic['t-stat']=df_dic['t-stat']+ t
-            df_dic['Donor']=df_dic['Donor']+[d]*len(p)
-            df_dic['Gene']=df_dic['Gene']+[g]*len(p)
-            df_dic['Linked Samples']=df_dic['Linked Samples']+[linked_samples.shape[0]]*len(p)
+            N_probes=gene_exression_info[d][g]['inside'].shape[0]
+            for i in range(N_probes):
+                t,p=stats.ttest_ind(gene_exression_info[d][g]['inside'][i,:], gene_exression_info[d][g]['outside'][i,:])
+                df_dic['p-value'].append(p)
+                df_dic['t-stat'].append(t)
+            df_dic['Donor']=df_dic['Donor']+[d]*N_probes
+            df_dic['Gene']=df_dic['Gene']+[g]*N_probes
+            df_dic['Linked Samples']=df_dic['Linked Samples']+[linked_samples.shape[0]]*N_probes
+            if  args.plot:
+                plot_cluster_expression(args.o,gene_exression_info[d][g]['inside'],gene_exression_info[d][g]['outside'],d,g,os.path.basename(args.i) )
         donor=None
         gc.collect()
 

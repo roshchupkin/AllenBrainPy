@@ -2,8 +2,8 @@ import os
 import sys
 
 
-DATA_DIR='/data/cluster_data/Allen_Brain/AB_data/'
-MRI_DIR=''#TODO
+DATA_DIR=''
+MRI_DIR=''
 
 DONOR=['donor10021',  'donor12876' , 'donor14380' , 'donor15496' , 'donor15697',  'donor9861']
 
@@ -21,4 +21,4 @@ SAMPLE_MRI={
             }
 
 
-TEMPLATE="" #TODO define
+TEMPLATE=""

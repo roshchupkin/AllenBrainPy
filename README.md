@@ -1,5 +1,7 @@
 # AllenBrainPy
-Python package to analyze Allen Humap Brain genes exression 
+Python package to analyze Allen Human Brain genes expression
+
+![ ](./example.png) 
 
 ## Installation
 
@@ -7,6 +9,16 @@ Navigate to directory where you want to save this package and clone this reposit
      ```
      git clone https://github.com/roshchupkin/AllenBrainPy.git
      ```
+## Download Allen Human Brain Atlas data
+Make two directories in your project folder, one for `MRI data` and for `expression data`. 
+In `config.py` script change **DATA_DIR** to path to expression directory and **MRI_DIR** to path to MRI directory. 
+### Expression Data
+You can download data from [Allen Brain Institute](http://human.brain-map.org/static/download) 
+or from this dropbox [link](https://www.dropbox.com/sh/uzwgv320pce1h0a/AAASsTOMSpfKOLe5ZZSMoFlca?dl=0). 
+Save all csv table in separate folder for every donor in your `expression directory`.
+### MRI data
+Original MRI T1 images were transformed to template MNI space. You can download find all transformed image
+ and template from this [link](https://www.dropbox.com/sh/uzwgv320pce1h0a/AAASsTOMSpfKOLe5ZZSMoFlca?dl=0). Save all of them in your `MRI directory`.
 ## Update
 
 You can update to the newest version using `git`. Navigate to your folder (where you cloned git repository):    
@@ -28,6 +40,8 @@ optional arguments:
   -i I                  path input nifti image of VBM result map
   -d {all,caucasian}    choose all donors or only caucasian
                         (choices=['all','caucasian'])
+  -donor DONOR [DONOR ...]
+                        choose donor(s)
   -threshold THRESHOLD  value threshold to form clusters from VBM result map
   -cl_size_threshold CL_SIZE_THRESHOLD
                         cluster size threshold to form clusters from VBM
@@ -49,8 +63,6 @@ optional arguments:
                         gene name for expression analysis
   -plot                 plot boxplot of gene expression
   -gene_names GENE_NAMES [GENE_NAMES ...]
-                        gene name for expression analysis
-  -rsid RSID [RSID ...]
                         gene name for expression analysis
 
 ```
