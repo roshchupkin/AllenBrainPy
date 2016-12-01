@@ -66,3 +66,7 @@ optional arguments:
                         gene name for expression analysis
 
 ```
+## Citation 
+
+[G.Roshchupkin et al. Effect of Alzheimer Disease risk loci on brain morphology through modulation of gene expression. 
+HBM, Annual Meeting of the Organization for Human Brain Mapping, 2016.](https://ww5.aievolution.com/hbm1601/index.cfm?do=abs.viewAbs&abs=3280) 
