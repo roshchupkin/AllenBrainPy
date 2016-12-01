@@ -107,7 +107,7 @@ class Donor(object):
 
             if samples_id is not None:
                 mask=np.ones_like(range(gene_expression.shape[1]), dtype=bool)
-                mask[samples_id]=False
+                mask[samples_id-1]=False
                 gene_expression_inside=gene_expression[:,mask]
                 gene_expression_outside=gene_expression[:,~mask]
                 gene_expression_inside_bin=gene_expression_bin[:,mask]
