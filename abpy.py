@@ -73,7 +73,11 @@ if args.model=='cluster_expression':
 
         linked_samples=link_samples2clusters(cl,donor.sample_map._data,dist_threshold=args.dist_threshold)
 
-        print 'Number of linked probes {}'.format(linked_samples.shape[0])
+        if not linked_samples is None:
+            print 'Number of linked probes {}'.format(linked_samples.shape[0])
+        else:
+            print ("There is no linked samples to your map from donor {}".format(d))
+            continue
 
         gene_exression_info[d]={}
         #gene_exression_info[d]['cluster_statistic']=cluster_statistic #TODO
